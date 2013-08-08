@@ -28,6 +28,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
     
     private LayoutInflater mLayoutInflater;
     private View mOverlayView;
+    private HistogramView histogramView;
     
     private boolean mIsOverlayShow=false;
     private boolean mIsFirstInit=true;
@@ -36,6 +37,8 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
     
     private int mCameraIndex;
 	
+    private byte[] buffer;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -117,12 +120,14 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		preview.removeView(mPreview);
 		mCamera = getCameraInstance(mCameraIndex);
 		mPreview.onResume(mCamera);
-		preview.post(new Runnable() {
+		preview.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				mCamera.setPreviewCallback(MainActivity.this);
+				buffer=new byte[640*480*2];
+				mCamera.addCallbackBuffer(buffer);
+				mCamera.setPreviewCallbackWithBuffer(MainActivity.this);
 			}
-		});
+		},1000);
 		preview.addView(mPreview);
 	}
 	
@@ -138,12 +143,18 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 			if(mIsFirstInit){
 				addContentView(mOverlayView, new LayoutParams(
 						LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+				
 				mIsFirstInit=false;
 			}else{
 				mOverlayView.setVisibility(View.VISIBLE);
 			}
+			histogramView=new HistogramView(this);
+			histogramView.updatePosition(preview.getWidth()/2, preview.getHeight()/2);
+			preview.addView(histogramView);
 		}else{
 			mOverlayView.setVisibility(View.GONE);
+			preview.removeView(histogramView);
+			histogramView=null;
 		}
 		mIsOverlayShow=!mIsOverlayShow;
 	}
@@ -164,9 +175,14 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		Size size=mCamera.getParameters().getPreviewSize();
 		int imgFormat = mCamera.getParameters().getPreviewFormat();
-		Log.d(TAG,"data.length = "+data.length+" , width = "+size.width+" , height = "
-				+size.height+" , format = "+imgFormat);
+//		Log.d(TAG,"data.length = "+data.length+" , width = "+size.width+" , height = "
+//				+size.height+" , format = "+imgFormat);
+		if(histogramView!=null){
+			histogramView.updateData(data, size.width, size.height, imgFormat);
+			histogramView.invalidate();
+		}
 		
+		mCamera.addCallbackBuffer(buffer);
 //		YuvImage image = new YuvImage(data, imgFormat, size.width, size.height, null);
 	}
 }
