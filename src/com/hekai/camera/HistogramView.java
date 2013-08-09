@@ -39,7 +39,7 @@ public class HistogramView extends SurfaceView{
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
-		Log.d(TAG, "onDraw");
+//		Log.d(TAG, "onDraw");
 		super.onDraw(canvas);
 		
 		canvas.drawRect(centerX-129, centerY-128, centerX+128, centerY+127, whitePaint);
@@ -57,6 +57,9 @@ public class HistogramView extends SurfaceView{
 	}
 	
 	public void updateData(byte[] data,int width,int height,int format){
+		for(int i=0;i<cacheBuffer.length;i++)
+			cacheBuffer[i]=0;
+		
 		for (int j = 0; j < height; j++) {
 			for (int i = 0; i < width; i++) {
 				int y=(0xff & (int)(data[j*width+i]));
@@ -75,7 +78,7 @@ public class HistogramView extends SurfaceView{
 				index=i;
 			}
 		}
-		Log.d(TAG,"max="+max+",index="+index);
+//		Log.d(TAG,"max="+max+",index="+index);
 		return max;
 	}
 	
