@@ -57,9 +57,9 @@ public class HistogramView extends SurfaceView{
 	}
 	
 	public void updateData(byte[] data,int width,int height,int format){
-		for(int i=0;i<width;i++){
-			for(int j=0;j<height;j++){
-				int y=(0xff & (int)(data[i*width+j]));
+		for (int j = 0; j < height; j++) {
+			for (int i = 0; i < width; i++) {
+				int y=(0xff & (int)(data[j*width+i]));
 				cacheBuffer[y]++;
 			}
 		}
