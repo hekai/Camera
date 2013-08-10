@@ -123,12 +123,21 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		preview.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				buffer=new byte[640*480*2];
-				mCamera.addCallbackBuffer(buffer);
-				mCamera.setPreviewCallbackWithBuffer(MainActivity.this);
+				if(!mPreview.isRelease()){
+					buffer=new byte[640*480*2];
+					mCamera.addCallbackBuffer(buffer);
+					mCamera.setPreviewCallbackWithBuffer(MainActivity.this);
+				}
 			}
 		},1000);
 		preview.addView(mPreview);
+		if(mIsOverlayShow){
+			if(histogramView!=null){
+				preview.removeView(histogramView);
+				preview.addView(histogramView);
+			}
+		}
+			
 	}
 	
 	private void stopCamera(){

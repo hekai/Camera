@@ -18,6 +18,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	
     private SurfaceHolder mHolder;
     private Camera mCamera;
+    private boolean mIsRelease;
 
     public CameraPreview(Context context) {
         super(context);
@@ -45,6 +46,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     	
     	mCamera=camera;
     	mHolder.addCallback(this);
+    	mIsRelease=false;
 	}
     
     protected void onPause(){
@@ -56,7 +58,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 	        mHolder.removeCallback(this);
 	        mCamera.release();
 	        mCamera=null;
+	        mIsRelease=true;
 	    }
+    }
+    
+    public boolean isRelease(){
+    	return mIsRelease;
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
