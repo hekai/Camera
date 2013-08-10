@@ -6,18 +6,23 @@ import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import com.hekai.camera.R;
 
-public class MainActivity extends Activity implements OnClickListener,PreviewCallback{
+public class MainActivity extends Activity implements OnClickListener,PreviewCallback,SensorEventListener{
 	
 	private static final String TAG="MainActivity";
 
@@ -39,6 +44,10 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	
     private byte[] buffer;
     
+    private Display mDisplay;
+    private int mRotation;
+    private SensorManager mSensorManager;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -58,6 +67,10 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		
         mLayoutInflater=LayoutInflater.from(this);
 		mOverlayView=mLayoutInflater.inflate(R.layout.overlay, null);
+		
+		mDisplay = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
+                .getDefaultDisplay();
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 	}
 	
 	@Override
@@ -65,6 +78,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		Log.d(TAG, "onResume");
 		super.onResume();
 		
+		mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
 		startCamera();
 	}
 	
@@ -73,6 +87,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		Log.d(TAG, "onPause");
 		super.onPause();
 		
+		mSensorManager.unregisterListener(this);
 		stopCamera();
 		
 	}
@@ -159,6 +174,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 			}
 			histogramView=new HistogramView(this);
 			histogramView.updatePosition(preview.getWidth()/2, preview.getHeight()/2);
+			histogramView.updateRotation(mRotation);
 			preview.addView(histogramView);
 		}else{
 			mOverlayView.setVisibility(View.GONE);
@@ -194,4 +210,39 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		mCamera.addCallbackBuffer(buffer);
 //		YuvImage image = new YuvImage(data, imgFormat, size.width, size.height, null);
 	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		if (Sensor.TYPE_ACCELEROMETER != event.sensor.getType()) {
+            return;
+        }
+
+        float[] values = event.values;
+        float ax = values[0];
+        float ay = values[1];
+        float az = values[2];
+        
+//		Log.d(TAG, "ax="+ax+",ay="+ay+",az="+az);
+        
+        float absAx=Math.abs(ax);
+        float absAy=Math.abs(ay);
+        
+		if (absAx < 5 && absAy < 5)
+			return;
+		
+		if(absAx>absAy){
+			mRotation=ax<0?3:1;//270:90
+		}else{
+			mRotation=ay<0?2:0;//180:0
+		}
+        
+		if(histogramView!=null)
+			histogramView.updateRotation(mRotation);
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	}
+	
+	
 }

@@ -1,7 +1,5 @@
 package com.hekai.camera;
 
-import java.util.Arrays;
-
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,6 +17,8 @@ public class HistogramView extends SurfaceView{
 	private int centerX=0,centerY=0;
 	
 	private int[] drawBuffer,cacheBuffer;
+	
+	private int rotation;
 
 	public HistogramView(Context context) {
 		super(context);
@@ -41,6 +41,9 @@ public class HistogramView extends SurfaceView{
 	protected void onDraw(Canvas canvas) {
 //		Log.d(TAG, "onDraw");
 		super.onDraw(canvas);
+
+		int angle = 90 * rotation;
+		canvas.rotate(angle,centerX,centerY);
 		
 		canvas.drawRect(centerX-129, centerY-128, centerX+128, centerY+127, whitePaint);
 		
@@ -54,6 +57,7 @@ public class HistogramView extends SurfaceView{
 				canvas.drawLine(centerX-129+(i+1), centerY+127, centerX-129+(i+1), centerY+127-len, whitePaint);
 			}
 		}
+		
 	}
 	
 	public void updateData(byte[] data,int width,int height,int format){
@@ -83,7 +87,13 @@ public class HistogramView extends SurfaceView{
 	}
 	
 	public void updatePosition(int centerX,int centerY){
+		Log.d(TAG,"updatePosition centerX="+centerX+",centerY="+centerY);
 		this.centerX=centerX;
 		this.centerY=centerY;
+	}
+	
+	public void updateRotation(int rotation){
+//		Log.d(TAG,"updateRotation rotation="+rotation);
+		this.rotation=rotation;
 	}
 }
