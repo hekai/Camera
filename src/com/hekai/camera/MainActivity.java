@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.hardware.Sensor;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -109,6 +111,25 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	        return false;
 	    }
 	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		int action=event.getAction();
+		switch(action){
+		case MotionEvent.ACTION_DOWN:
+			mCamera.autoFocus(mAutoFocusCallback);
+			break;
+		}
+		return super.onTouchEvent(event);
+	}
+	
+	private AutoFocusCallback mAutoFocusCallback=new AutoFocusCallback() {
+		
+		@Override
+		public void onAutoFocus(boolean success, Camera camera) {
+			Log.d(TAG,"autofucos success="+success);
+		}
+	};
 	
 	/** A safe way to get an instance of the Camera object. */
 	public static Camera getCameraInstance(int index){
