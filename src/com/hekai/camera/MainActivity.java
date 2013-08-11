@@ -1,10 +1,17 @@
 package com.hekai.camera;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.hardware.Camera;
+import android.hardware.Camera.Area;
 import android.hardware.Camera.AutoFocusCallback;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.hardware.Sensor;
@@ -19,28 +26,27 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 public class MainActivity extends Activity implements OnClickListener,PreviewCallback,SensorEventListener{
 	
 	private static final String TAG="MainActivity";
 
 	private Camera mCamera;
+	private Parameters mParameters;
+	private List<Area> mFocusArea;
     private CameraPreview mPreview;
     
     private FrameLayout preview;
     
     private LayoutInflater mLayoutInflater;
-    private View mOverlayView;
     private HistogramView histogramView;
     
     private boolean mIsOverlayShow=false;
-    private boolean mIsFirstInit=true;
     
-    private Button mCaptureButton,mSwitchButton;
+    private ImageView mCaptureButton,mSwitchButton;
     
     private int mCameraIndex;
 	
@@ -56,23 +62,25 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		setContentView(R.layout.activity_main);
 		
 		mCameraIndex=0;//use back camera default. 
+		mFocusArea=new ArrayList<Area>();
 		
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this);
         preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);
         
-        mCaptureButton=(Button)findViewById(R.id.button_capture);
+        mCaptureButton=(ImageView)findViewById(R.id.button_capture);
         mCaptureButton.setOnClickListener(this);
-        mSwitchButton=(Button)findViewById(R.id.switch_camera);
+        mSwitchButton=(ImageView)findViewById(R.id.switch_camera);
         mSwitchButton.setOnClickListener(this);
 		
         mLayoutInflater=LayoutInflater.from(this);
-		mOverlayView=mLayoutInflater.inflate(R.layout.overlay, null);
 		
 		mDisplay = ((WindowManager) getSystemService(Context.WINDOW_SERVICE))
                 .getDefaultDisplay();
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		
+		showOverlay();
 	}
 	
 	@Override
@@ -117,8 +125,21 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		int action=event.getAction();
 		switch(action){
 		case MotionEvent.ACTION_DOWN:
-			mCamera.autoFocus(mAutoFocusCallback);
-			break;
+			//TODO implement touch focus.
+			/*
+			int x=(int)event.getX();
+			int y=(int)event.getY();
+			Rect rect=new Rect();
+			calculateTapArea(x, y, 1f, rect);
+			Log.d(TAG,"rect="+rect);
+			if(mFocusArea.isEmpty())
+				mFocusArea.add(new Area(rect, 1));
+			else
+				mFocusArea.set(0, new Area(rect, 1));
+			mParameters.setFocusAreas(mFocusArea);
+			mCamera.setParameters(mParameters);
+			*/
+			return true;
 		}
 		return super.onTouchEvent(event);
 	}
@@ -146,7 +167,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	@Override
 	public void onClick(View v) {
 		if(v.equals(mCaptureButton)){
-			showOverlay();
+			mCamera.autoFocus(mAutoFocusCallback);
 		}else if(v.equals(mSwitchButton)){
 			switchCamera();
 		}
@@ -155,6 +176,8 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	private void startCamera(){
 		preview.removeView(mPreview);
 		mCamera = getCameraInstance(mCameraIndex);
+		mParameters=mCamera.getParameters();
+		mSwitchButton.setImageResource(mCameraIndex==0?R.drawable.ic_switch_front:R.drawable.ic_switch_back);
 		mPreview.onResume(mCamera);
 		preview.postDelayed(new Runnable() {
 			@Override
@@ -182,23 +205,12 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	}
 	
 	private void showOverlay(){
-		Log.d(TAG, "showOverlay() mIsOverlayShow="+mIsOverlayShow+",mIsFirstInit="+mIsFirstInit);
-		
 		if(!mIsOverlayShow){
-			if(mIsFirstInit){
-				addContentView(mOverlayView, new LayoutParams(
-						LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-				
-				mIsFirstInit=false;
-			}else{
-				mOverlayView.setVisibility(View.VISIBLE);
-			}
 			histogramView=new HistogramView(this);
-			histogramView.updatePosition(preview.getWidth()/2, preview.getHeight()/2);
+			histogramView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
 			histogramView.updateRotation(mRotation);
 			preview.addView(histogramView);
 		}else{
-			mOverlayView.setVisibility(View.GONE);
 			preview.removeView(histogramView);
 			histogramView=null;
 		}
@@ -265,5 +277,26 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	}
 	
+	private void calculateTapArea(int x, int y, float areaMultiple, Rect rect) {
+        int areaSize = (int) (Math.min(mDisplay.getWidth(), mDisplay.getHeight()) * areaMultiple / 20);
+        int left = clamp(x - areaSize, 0, mDisplay.getWidth() - 2 * areaSize);
+        int top = clamp(y - areaSize, 0, mDisplay.getHeight() - 2 * areaSize);
+
+        RectF rectF = new RectF(left, top, left + 2 * areaSize, top + 2 * areaSize);
+//        mMatrix.mapRect(rectF);
+        rectFToRect(rectF, rect);
+    }
 	
+	public static int clamp(int x, int min, int max) {
+        if (x > max) return max;
+        if (x < min) return min;
+        return x;
+    }
+	
+	public static void rectFToRect(RectF rectF, Rect rect) {
+        rect.left = Math.round(rectF.left);
+        rect.top = Math.round(rectF.top);
+        rect.right = Math.round(rectF.right);
+        rect.bottom = Math.round(rectF.bottom);
+    }
 }
