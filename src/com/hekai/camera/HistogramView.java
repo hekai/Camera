@@ -22,6 +22,8 @@ public class HistogramView extends OverlayView{
 
 	public HistogramView(Context context) {
 		super(context);
+		
+		init();
 	}
 	
 	public void init(){
