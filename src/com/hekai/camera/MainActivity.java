@@ -129,13 +129,10 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 			mCamera.stopFaceDetection();
 			float x = event.getX();
 	        float y = event.getY();
-	        float touchMajor = event.getTouchMajor();
-	        float touchMinor = event.getTouchMinor();
-
-			Rect touchRect = new Rect((int) (x - touchMajor / 2),
-					(int) (y - touchMinor / 2), (int) (x + touchMajor / 2),
-					(int) (y + touchMinor / 2));
-			
+	        Rect touchRect=new Rect();
+	        
+	        calculateTapArea((int)x,(int)y,1,touchRect);
+	        
 			Log.d(TAG,"(x,y)=("+x+","+y+"),rect="+touchRect+",(w,h)=("+mPreview.getWidth()+","+mPreview.getHeight()+")");
 
 			if(mFocusArea.isEmpty())
@@ -298,9 +295,15 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
         int left = clamp(x - areaSize, 0, mPreview.getWidth() - 2 * areaSize);
         int top = clamp(y - areaSize, 0, mPreview.getHeight() - 2 * areaSize);
 
-        RectF rectF = new RectF(left, top, left + 2 * areaSize, top + 2 * areaSize);
+        rect.left=1000-(mPreview.getWidth()-left)*2000/mPreview.getWidth();
+        rect.top=1000-(mPreview.getHeight()-top)*2000/mPreview.getHeight();
+        rect.right=rect.left+areaSize*2000/mPreview.getWidth();
+        rect.bottom=rect.top+areaSize*2000/mPreview.getHeight();
+        
+        
+//        RectF rectF = new RectF(left, top, left + 2 * areaSize, top + 2 * areaSize);
 //        mMatrix.mapRect(rectF);
-        rectFToRect(rectF, rect);
+//        rectFToRect(rectF, rect);
     }
 	
 	public static int clamp(int x, int min, int max) {
