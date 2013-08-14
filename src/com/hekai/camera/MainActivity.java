@@ -126,19 +126,27 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		switch(action){
 		case MotionEvent.ACTION_DOWN:
 			//TODO implement touch focus.
-			/*
-			int x=(int)event.getX();
-			int y=(int)event.getY();
-			Rect rect=new Rect();
-			calculateTapArea(x, y, 1f, rect);
-			Log.d(TAG,"rect="+rect);
+			mCamera.stopFaceDetection();
+			float x = event.getX();
+	        float y = event.getY();
+	        float touchMajor = event.getTouchMajor();
+	        float touchMinor = event.getTouchMinor();
+
+			Rect touchRect = new Rect((int) (x - touchMajor / 2),
+					(int) (y - touchMinor / 2), (int) (x + touchMajor / 2),
+					(int) (y + touchMinor / 2));
+			
+			Log.d(TAG,"(x,y)=("+x+","+y+"),rect="+touchRect+",(w,h)=("+mPreview.getWidth()+","+mPreview.getHeight()+")");
+
 			if(mFocusArea.isEmpty())
-				mFocusArea.add(new Area(rect, 1));
+				mFocusArea.add(new Area(touchRect, 1));
 			else
-				mFocusArea.set(0, new Area(rect, 1));
+				mFocusArea.set(0, new Area(touchRect, 1));
+			mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 			mParameters.setFocusAreas(mFocusArea);
+			mParameters.setMeteringAreas(mFocusArea);
 			mCamera.setParameters(mParameters);
-			*/
+			autoFocus();
 			return true;
 		}
 		return super.onTouchEvent(event);
@@ -167,7 +175,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	@Override
 	public void onClick(View v) {
 		if(v.equals(mCaptureButton)){
-			mCamera.autoFocus(mAutoFocusCallback);
+			autoFocus();
 		}else if(v.equals(mSwitchButton)){
 			switchCamera();
 		}
@@ -176,7 +184,11 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	private void startCamera(){
 		preview.removeView(mPreview);
 		mCamera = getCameraInstance(mCameraIndex);
+		
 		mParameters=mCamera.getParameters();
+		mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+		mCamera.setParameters(mParameters);
+		
 		mSwitchButton.setImageResource(mCameraIndex==0?R.drawable.ic_switch_front:R.drawable.ic_switch_back);
 		mPreview.onResume(mCamera);
 		preview.postDelayed(new Runnable() {
@@ -202,6 +214,10 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	private void stopCamera(){
 		mCamera.setPreviewCallback(null);
 		mPreview.onPause();
+	}
+	
+	private void autoFocus(){
+		mCamera.autoFocus(mAutoFocusCallback);
 	}
 	
 	private void showOverlay(){
@@ -278,9 +294,9 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	}
 	
 	private void calculateTapArea(int x, int y, float areaMultiple, Rect rect) {
-        int areaSize = (int) (Math.min(mDisplay.getWidth(), mDisplay.getHeight()) * areaMultiple / 20);
-        int left = clamp(x - areaSize, 0, mDisplay.getWidth() - 2 * areaSize);
-        int top = clamp(y - areaSize, 0, mDisplay.getHeight() - 2 * areaSize);
+        int areaSize = (int) (Math.min(mPreview.getWidth(), mPreview.getHeight()) * areaMultiple / 20);
+        int left = clamp(x - areaSize, 0, mPreview.getWidth() - 2 * areaSize);
+        int top = clamp(y - areaSize, 0, mPreview.getHeight() - 2 * areaSize);
 
         RectF rectF = new RectF(left, top, left + 2 * areaSize, top + 2 * areaSize);
 //        mMatrix.mapRect(rectF);
