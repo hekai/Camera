@@ -24,6 +24,7 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -42,7 +43,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
     private FrameLayout preview;
     
     private LayoutInflater mLayoutInflater;
-    private HistogramView histogramView;
+    private OverlayView mOverlayView;
     
     private boolean mIsOverlayShow=false;
     
@@ -54,6 +55,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
     
     private Display mDisplay;
     private int mRotation;
+    private Size mPreviewSize;
     private SensorManager mSensorManager;
     
 	@Override
@@ -80,7 +82,6 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
                 .getDefaultDisplay();
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		
-		showOverlay();
 	}
 	
 	@Override
@@ -186,23 +187,30 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 		mCamera.setParameters(mParameters);
 		
+		mPreviewSize=mParameters.getPreviewSize();
+		
 		mSwitchButton.setImageResource(mCameraIndex==0?R.drawable.ic_switch_front:R.drawable.ic_switch_back);
 		mPreview.onResume(mCamera);
-		preview.postDelayed(new Runnable() {
+		
+		if(!mIsOverlayShow){
+			showOverlay();
+		}
+		
+		preview.post(new Runnable() {
 			@Override
 			public void run() {
 				if(!mPreview.isRelease()){
-					buffer=new byte[640*480*2];
+					buffer=new byte[mPreviewSize.width*mPreviewSize.height*2];
 					mCamera.addCallbackBuffer(buffer);
 					mCamera.setPreviewCallbackWithBuffer(MainActivity.this);
 				}
 			}
-		},1000);
+		});
 		preview.addView(mPreview);
 		if(mIsOverlayShow){
-			if(histogramView!=null){
-				preview.removeView(histogramView);
-				preview.addView(histogramView);
+			if(mOverlayView!=null){
+				preview.removeView(mOverlayView);
+				preview.addView(mOverlayView);
 			}
 		}
 			
@@ -219,13 +227,17 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	
 	private void showOverlay(){
 		if(!mIsOverlayShow){
-			histogramView=new HistogramView(this);
-			histogramView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
-			histogramView.updateRotation(mRotation);
-			preview.addView(histogramView);
+//			overlayView=new HistogramView(this);
+			mOverlayView=new GreyView(this);
+			mOverlayView.setIsRotateWithSensor(false);
+			mOverlayView.setSize(mPreviewSize.width/2, mPreviewSize.height/2);
+			mOverlayView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
+			mOverlayView.updateRotation(Surface.ROTATION_90);
+			mOverlayView.init();
+			preview.addView(mOverlayView);
 		}else{
-			preview.removeView(histogramView);
-			histogramView=null;
+			preview.removeView(mOverlayView);
+			mOverlayView=null;
 		}
 		mIsOverlayShow=!mIsOverlayShow;
 	}
@@ -248,9 +260,9 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		int imgFormat = mCamera.getParameters().getPreviewFormat();
 //		Log.d(TAG,"data.length = "+data.length+" , width = "+size.width+" , height = "
 //				+size.height+" , format = "+imgFormat);
-		if(histogramView!=null){
-			histogramView.updateData(data, size.width, size.height, imgFormat);
-			histogramView.invalidate();
+		if(mOverlayView!=null){
+			mOverlayView.updateData(data, size.width, size.height, imgFormat);
+			mOverlayView.invalidate();
 		}
 		
 		mCamera.addCallbackBuffer(buffer);
@@ -282,8 +294,8 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 			mRotation=ay<0?2:0;//180:0
 		}
         
-		if(histogramView!=null)
-			histogramView.updateRotation(mRotation);
+		if(mOverlayView!=null && mOverlayView.isRotateWithSensor())
+			mOverlayView.updateRotation(mRotation);
 	}
 
 	@Override

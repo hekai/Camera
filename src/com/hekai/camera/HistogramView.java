@@ -8,27 +8,23 @@ import android.graphics.Paint.Style;
 import android.util.Log;
 import android.view.SurfaceView;
 
-public class HistogramView extends SurfaceView{
+public class HistogramView extends OverlayView{
 	
 	private static final String TAG="HistogramView";
 	
 	private Paint whitePaint;
 	
-	private int centerX=0,centerY=0;
+	
 	
 	private int[] drawBuffer,cacheBuffer;
 	
-	private int rotation;
+	
 
 	public HistogramView(Context context) {
 		super(context);
-		
-		setWillNotDraw(false);		
-		
-		init();
 	}
 	
-	private void init(){
+	public void init(){
 		whitePaint=new Paint();
 		whitePaint.setColor(Color.WHITE);
 		whitePaint.setStyle(Style.STROKE);
@@ -42,10 +38,10 @@ public class HistogramView extends SurfaceView{
 //		Log.d(TAG, "onDraw");
 		super.onDraw(canvas);
 
-		int angle = 90 * rotation;
-		canvas.rotate(angle,centerX,centerY);
+		int angle = 90 * mRotation;
+		canvas.rotate(angle,mCenterX,mCenterY);
 		
-		canvas.drawRect(centerX-129, centerY-128, centerX+128, centerY+127, whitePaint);
+		canvas.drawRect(mCenterX-129, mCenterY-128, mCenterX+128, mCenterY+127, whitePaint);
 		
 		int maxValue=getMaxValue(drawBuffer);
 		
@@ -54,12 +50,13 @@ public class HistogramView extends SurfaceView{
 		for(int i=0;i<drawBuffer.length;i++){
 			if(drawBuffer[i]>0){
 				int len=(int) (drawBuffer[i]/ratio);
-				canvas.drawLine(centerX-129+(i+1), centerY+127, centerX-129+(i+1), centerY+127-len, whitePaint);
+				canvas.drawLine(mCenterX-129+(i+1), mCenterY+127, mCenterX-129+(i+1), mCenterY+127-len, whitePaint);
 			}
 		}
 		
 	}
 	
+	@Override
 	public void updateData(byte[] data,int width,int height,int format){
 		for(int i=0;i<cacheBuffer.length;i++)
 			cacheBuffer[i]=0;
@@ -86,14 +83,4 @@ public class HistogramView extends SurfaceView{
 		return max;
 	}
 	
-	public void updatePosition(int centerX,int centerY){
-		Log.d(TAG,"updatePosition centerX="+centerX+",centerY="+centerY);
-		this.centerX=centerX;
-		this.centerY=centerY;
-	}
-	
-	public void updateRotation(int rotation){
-//		Log.d(TAG,"updateRotation rotation="+rotation);
-		this.rotation=rotation;
-	}
 }
