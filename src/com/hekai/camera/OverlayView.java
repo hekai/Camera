@@ -12,6 +12,7 @@ public abstract class OverlayView extends SurfaceView{
 	int mWidth=0,mHeight=0;
 	int mRotation;
 	boolean mIsRotateWithSensor=true;
+	Object extra;
 	
 	public OverlayView(Context context) {
 		super(context);
@@ -41,6 +42,14 @@ public abstract class OverlayView extends SurfaceView{
 
 	public void setIsRotateWithSensor(boolean mIsRotateWithSensor) {
 		this.mIsRotateWithSensor = mIsRotateWithSensor;
+	}
+	
+	public Object getExtra() {
+		return extra;
+	}
+
+	public void setExtra(Object extra) {
+		this.extra = extra;
 	}
 
 	public abstract void updateData(byte[] data, int width, int height, int format);

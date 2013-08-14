@@ -12,7 +12,6 @@ public class GreyView extends OverlayView{
 	
 	public GreyView(Context context) {
 		super(context);
-		
 	}
 	
 	@Override
@@ -44,15 +43,26 @@ public class GreyView extends OverlayView{
 		int skipY=height/mHeight;
 		int index=0;
 		
+		final int frameSize = width * height;
+		int r,g,b;
+		
 		for (int j = 0; j < height; j+=skipY) {
+			int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
 			for (int i = 0; i < width; i+=skipX) {
 				int y=(0xff & (int)(data[j*width+i]));
-				int u=0;
-				int v=0;
+				if ((i & 1) == 0) {
+//		            v = 0xff & (int)data[uvp++];
+//		            u = 0xff & (int)data[uvp++];
+					u=128;v=128;//grey-scale
+		        }
 				
-				int r = y;
-	            int g = y;
-	            int b = y;
+				r = y + (int) 1.4075f * (v-128);
+				g = y - (int) (0.3455f * (u-128) + 0.7169f * (v-128));
+				b = y + (int) 1.779f * (u-128);
+				
+			    r = r>255? 255 : r<0 ? 0 : r;
+			    g = g>255? 255 : g<0 ? 0 : g;
+			    b = b>255? 255 : b<0 ? 0 : b;
 	            
 	            int color=0xff000000 | r<<16 | g<<8 | b;
 	            cacheColors[index++]=color;
