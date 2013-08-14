@@ -42,7 +42,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
     private FrameLayout preview;
     
     private LayoutInflater mLayoutInflater;
-    private HistogramView histogramView;
+    private OverlayView overlayView;
     
     private boolean mIsOverlayShow=false;
     
@@ -200,9 +200,9 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		},1000);
 		preview.addView(mPreview);
 		if(mIsOverlayShow){
-			if(histogramView!=null){
-				preview.removeView(histogramView);
-				preview.addView(histogramView);
+			if(overlayView!=null){
+				preview.removeView(overlayView);
+				preview.addView(overlayView);
 			}
 		}
 			
@@ -219,13 +219,13 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	
 	private void showOverlay(){
 		if(!mIsOverlayShow){
-			histogramView=new HistogramView(this);
-			histogramView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
-			histogramView.updateRotation(mRotation);
-			preview.addView(histogramView);
+			overlayView=new HistogramView(this);
+			overlayView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
+			overlayView.updateRotation(mRotation);
+			preview.addView(overlayView);
 		}else{
-			preview.removeView(histogramView);
-			histogramView=null;
+			preview.removeView(overlayView);
+			overlayView=null;
 		}
 		mIsOverlayShow=!mIsOverlayShow;
 	}
@@ -248,9 +248,9 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		int imgFormat = mCamera.getParameters().getPreviewFormat();
 //		Log.d(TAG,"data.length = "+data.length+" , width = "+size.width+" , height = "
 //				+size.height+" , format = "+imgFormat);
-		if(histogramView!=null){
-			histogramView.updateData(data, size.width, size.height, imgFormat);
-			histogramView.invalidate();
+		if(overlayView!=null){
+			overlayView.updateData(data, size.width, size.height, imgFormat);
+			overlayView.invalidate();
 		}
 		
 		mCamera.addCallbackBuffer(buffer);
@@ -282,8 +282,8 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 			mRotation=ay<0?2:0;//180:0
 		}
         
-		if(histogramView!=null)
-			histogramView.updateRotation(mRotation);
+		if(overlayView!=null)
+			overlayView.updateRotation(mRotation);
 	}
 
 	@Override

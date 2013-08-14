@@ -8,22 +8,20 @@ import android.graphics.Paint.Style;
 import android.util.Log;
 import android.view.SurfaceView;
 
-public class HistogramView extends SurfaceView{
+public class HistogramView extends OverlayView{
 	
 	private static final String TAG="HistogramView";
 	
 	private Paint whitePaint;
 	
-	private int centerX=0,centerY=0;
+	
 	
 	private int[] drawBuffer,cacheBuffer;
 	
-	private int rotation;
+	
 
 	public HistogramView(Context context) {
 		super(context);
-		
-		setWillNotDraw(false);		
 		
 		init();
 	}
@@ -60,6 +58,7 @@ public class HistogramView extends SurfaceView{
 		
 	}
 	
+	@Override
 	public void updateData(byte[] data,int width,int height,int format){
 		for(int i=0;i<cacheBuffer.length;i++)
 			cacheBuffer[i]=0;
@@ -86,14 +85,4 @@ public class HistogramView extends SurfaceView{
 		return max;
 	}
 	
-	public void updatePosition(int centerX,int centerY){
-		Log.d(TAG,"updatePosition centerX="+centerX+",centerY="+centerY);
-		this.centerX=centerX;
-		this.centerY=centerY;
-	}
-	
-	public void updateRotation(int rotation){
-//		Log.d(TAG,"updateRotation rotation="+rotation);
-		this.rotation=rotation;
-	}
 }
