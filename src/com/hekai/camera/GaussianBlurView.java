@@ -2,23 +2,23 @@ package com.hekai.camera;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.util.Log;
 
-public class GreyView extends OverlayView{
-	
-	private static final String TAG="GreyView";
+public class GaussianBlurView extends OverlayView{
+
+	private static final String TAG="GaussianBlurView";
 	
 	private int[] cacheColors,drawColors;
 	
-	public GreyView(Context context) {
+	public GaussianBlurView(Context context) {
 		super(context);
 	}
-	
+
 	@Override
 	public void init() {
 		cacheColors = new int[mWidth * mHeight];
 		drawColors = new int[mWidth * mHeight];
 	}
+	
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
@@ -30,15 +30,10 @@ public class GreyView extends OverlayView{
 		canvas.drawBitmap(drawColors, 0, mWidth, mCenterX - mWidth / 2,
 				mCenterY - mHeight / 2, mWidth, mHeight, true, null);
 		
-		
 	}
-
+	
 	@Override
 	public void updateData(byte[] data, int width, int height, int format) {
-		for(int i=0;i<cacheColors.length;i++){
-			cacheColors[i]=0;
-		}
-		
 		int skipX=width/mWidth;
 		int skipY=height/mHeight;
 		int index=0;
@@ -51,9 +46,8 @@ public class GreyView extends OverlayView{
 			for (int i = 0; i < width; i+=skipX) {
 				int y=(0xff & (int)(data[j*width+i]));
 				if ((i & 1) == 0) {
-//		            v = 0xff & (int)data[uvp++];
-//		            u = 0xff & (int)data[uvp++];
-					u=128;v=128;//grey-scale
+		            v = 0xff & (int)data[uvp++];
+		            u = 0xff & (int)data[uvp++];
 		        }
 				
 				r = y + (int) 1.4075f * (v-128);
@@ -70,11 +64,8 @@ public class GreyView extends OverlayView{
 			}
 		}
 		
-//		Log.d(TAG,"index="+index+",("+mWidth+","+mHeight+"),"+mWidth*mHeight);
-		
 		System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
 	}
-
 
 
 }

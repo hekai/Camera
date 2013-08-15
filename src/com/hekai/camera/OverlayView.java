@@ -52,6 +52,6 @@ public abstract class OverlayView extends SurfaceView{
 		this.extra = extra;
 	}
 
-	public abstract void updateData(byte[] data, int width, int height, int format);
 	public abstract void init();
+	public abstract void updateData(byte[] data, int width, int height, int format);
 }

@@ -228,7 +228,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 	private void showOverlay(){
 		if(!mIsOverlayShow){
 //			overlayView=new HistogramView(this);
-			mOverlayView=new GreyView(this);
+			mOverlayView=new GaussianBlurView(this);
 			mOverlayView.setIsRotateWithSensor(false);
 			mOverlayView.setSize(mPreviewSize.width/2, mPreviewSize.height/2);
 			mOverlayView.updatePosition(mDisplay.getWidth()/2, mDisplay.getHeight()/2);
