@@ -7,7 +7,13 @@ public class GaussianBlurView extends OverlayView{
 
 	private static final String TAG="GaussianBlurView";
 	
+	private float sigma = 1.5f;
+	private int radius = 1;
+	
+	private float[][] weights;
+	
 	private int[] cacheColors,drawColors;
+	private byte[] cacheR,cacheG,cacheB;
 	
 	public GaussianBlurView(Context context) {
 		super(context);
@@ -17,8 +23,16 @@ public class GaussianBlurView extends OverlayView{
 	public void init() {
 		cacheColors = new int[mWidth * mHeight];
 		drawColors = new int[mWidth * mHeight];
+		cacheR=new byte[mWidth * mHeight];
+		cacheG=new byte[mWidth * mHeight];
+		cacheB=new byte[mWidth * mHeight];
+		
+		weights=new float[][]{
+				{ 0.0947416f, 0.118318f, 0.0947416f },
+				{ 0.118318f, 0.147761f, 0.118318f },
+				{ 0.0947416f, 0.118318f, 0.0947416f }
+				};
 	}
-	
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
@@ -58,13 +72,62 @@ public class GaussianBlurView extends OverlayView{
 			    g = g>255? 255 : g<0 ? 0 : g;
 			    b = b>255? 255 : b<0 ? 0 : b;
 	            
-	            int color=0xff000000 | r<<16 | g<<8 | b;
-	            cacheColors[index++]=color;
-	            
+//	            int color=0xff000000 | r<<16 | g<<8 | b;
+//	            cacheColors[index++]=color;
+			    cacheR[index]=(byte)r;
+			    cacheG[index]=(byte)g;
+			    cacheB[index]=(byte)b;
+			    index++;
+			}
+		}
+		
+		for(int j=0;j<mHeight;j++){
+			for(int i=0;i<mWidth;i++){
+//				int k=j*mHeight+i;
+				r=gaussion(i,j,0);
+				g=gaussion(i,j,1);
+				b=gaussion(i,j,2);
+				
+				cacheColors[j*mHeight+i]=0xff000000 | r<<16 | g<<8 | b;
 			}
 		}
 		
 		System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
+	}
+	
+	private int gaussion(int x,int y,int type){
+		byte[] cacheRGB=null;
+		switch(type){
+		case 0:
+			cacheRGB=cacheR;
+			break;
+		case 1:
+			cacheRGB=cacheG;
+			break;
+		default:
+			cacheRGB=cacheB;	
+		}
+		
+		float result=0;
+		
+		for(int j=-radius;j<=radius;j++){
+			for(int i=-radius;i<=radius;i++){
+				int px=x+i;
+				int py=y+j;
+				if(px<0 || px>=mWidth || py<0 || py>=mHeight)
+					continue;
+				
+				float w=weights[j+radius][i+radius];
+				int rgb=0xff & cacheRGB[py*mHeight+px];
+				result+=w*rgb;
+			}
+		}
+		
+		int rgbResult=(int)result;
+		
+		rgbResult = rgbResult>255? 255 : rgbResult<0 ? 0 : rgbResult;
+		
+		return rgbResult;
 	}
 
 
