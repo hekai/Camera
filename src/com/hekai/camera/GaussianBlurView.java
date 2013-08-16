@@ -88,7 +88,7 @@ public class GaussianBlurView extends OverlayView{
 				g=gaussion(i,j,1);
 				b=gaussion(i,j,2);
 				
-				cacheColors[j*mHeight+i]=0xff000000 | r<<16 | g<<8 | b;
+				cacheColors[j*mWidth+i]=0xff000000 | r<<16 | g<<8 | b;
 			}
 		}
 		
@@ -118,7 +118,7 @@ public class GaussianBlurView extends OverlayView{
 					continue;
 				
 				float w=weights[j+radius][i+radius];
-				int rgb=0xff & cacheRGB[py*mHeight+px];
+				int rgb=0xff & cacheRGB[py*mWidth+px];
 				result+=w*rgb;
 			}
 		}
