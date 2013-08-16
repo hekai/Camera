@@ -72,7 +72,15 @@ public class GreyView extends OverlayView{
 		
 //		Log.d(TAG,"index="+index+",("+mWidth+","+mHeight+"),"+mWidth*mHeight);
 		
-		System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
+		if(mCameraIndex==0){
+			System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
+		}else{
+			//reverse
+			index=0;
+			for(int i=cacheColors.length-1;i>-1;i--){
+				drawColors[index++]=cacheColors[i];
+			}
+		}
 	}
 
 

@@ -209,6 +209,7 @@ public class MainActivity extends Activity implements OnClickListener,PreviewCal
 		preview.addView(mPreview);
 		if(mIsOverlayShow){
 			if(mOverlayView!=null){
+				mOverlayView.setCameraIndex(mCameraIndex);
 				preview.removeView(mOverlayView);
 				preview.addView(mOverlayView);
 			}

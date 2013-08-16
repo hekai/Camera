@@ -11,6 +11,7 @@ public abstract class OverlayView extends SurfaceView{
 	int mCenterX=0,mCenterY=0;
 	int mWidth=0,mHeight=0;
 	int mRotation;
+	int mCameraIndex=0;
 	boolean mIsRotateWithSensor=true;
 	Object extra;
 	
@@ -50,6 +51,10 @@ public abstract class OverlayView extends SurfaceView{
 
 	public void setExtra(Object extra) {
 		this.extra = extra;
+	}
+	
+	public void setCameraIndex(int index){
+		this.mCameraIndex=index;
 	}
 
 	public abstract void init();

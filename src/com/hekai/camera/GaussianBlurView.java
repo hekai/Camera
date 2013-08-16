@@ -124,8 +124,15 @@ public class GaussianBlurView extends OverlayView{
 				cacheColors[j*mWidth+i]=0xff000000 | r<<16 | g<<8 | b;
 			}
 		}
-		
-		System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
+		if(mCameraIndex==0){
+			System.arraycopy(cacheColors, 0, drawColors, 0, cacheColors.length);
+		}else{
+			//reverse
+			index=0;
+			for(int i=cacheColors.length-1;i>-1;i--){
+				drawColors[index++]=cacheColors[i];
+			}
+		}
 	}
 	
 	private int gaussion(int x,int y,int type){
