@@ -7,10 +7,10 @@ public class GaussianBlurView extends OverlayView{
 
 	private static final String TAG="GaussianBlurView";
 	
-	private float sigma = 1.5f;
+	private double sigma = 1.5f;
 	private int radius = 1;
 	
-	private float[][] weights;
+	private double[][] weights;
 	
 	private int[] cacheColors,drawColors;
 	private byte[] cacheR,cacheG,cacheB;
@@ -27,11 +27,44 @@ public class GaussianBlurView extends OverlayView{
 		cacheG=new byte[mWidth * mHeight];
 		cacheB=new byte[mWidth * mHeight];
 		
-		weights=new float[][]{
+		calculateWeights();
+	}
+	
+	private void calculateWeights(){
+		int size = 2 * radius + 1;
+		weights=new double[size][size];
+		/*
+		weights=new double[][]{
 				{ 0.0947416f, 0.118318f, 0.0947416f },
 				{ 0.118318f, 0.147761f, 0.118318f },
 				{ 0.0947416f, 0.118318f, 0.0947416f }
 				};
+		*/
+		
+		double totalWeight=0.0f;
+		
+		for(int j=-radius;j<=radius;j++){
+			for(int i=-radius;i<=radius;i++){
+				double w=calculateGaussionWeight(i, j);
+				totalWeight+=w;
+				weights[j+radius][i+radius]=w;
+			}
+		}
+		
+		for(int j=-radius;j<=radius;j++){
+			for(int i=-radius;i<=radius;i++){
+				weights[j+radius][i+radius]/=totalWeight;
+			}
+		}
+		
+	}
+	
+	private double calculateGaussionWeight(int x,int y){
+		double weight = 
+				Math.pow(Math.E, -(x * x + y * y) / (2 * sigma * sigma))
+				/ 
+				(2 * Math.PI * sigma * sigma);
+		return weight;
 	}
 	
 	@Override
@@ -105,10 +138,10 @@ public class GaussianBlurView extends OverlayView{
 			cacheRGB=cacheG;
 			break;
 		default:
-			cacheRGB=cacheB;	
+			cacheRGB=cacheB;
 		}
 		
-		float result=0;
+		double result=0;
 		
 		for(int j=-radius;j<=radius;j++){
 			for(int i=-radius;i<=radius;i++){
@@ -117,7 +150,7 @@ public class GaussianBlurView extends OverlayView{
 				if(px<0 || px>=mWidth || py<0 || py>=mHeight)
 					continue;
 				
-				float w=weights[j+radius][i+radius];
+				double w=weights[j+radius][i+radius];
 				int rgb=0xff & cacheRGB[py*mWidth+px];
 				result+=w*rgb;
 			}
