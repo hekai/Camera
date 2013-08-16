@@ -77,8 +77,10 @@ public class GreyView extends OverlayView{
 		}else{
 			//reverse
 			index=0;
-			for(int i=cacheColors.length-1;i>-1;i--){
-				drawColors[index++]=cacheColors[i];
+			for(int j=0;j<mHeight;j++){
+				for(int i=mWidth-1;i>-1;i--){
+					drawColors[index++]=cacheColors[j*mWidth+i];
+				}
 			}
 		}
 	}
